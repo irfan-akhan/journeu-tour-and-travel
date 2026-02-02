@@ -77,19 +77,6 @@ export const KASHMIR_DESTINATION: RegionalDestination = {
       category: 'heritage'
     },
     {
-      name: 'Chashma Shahi',
-      description: 'The smallest but most charming of Srinagar\'s Mughal gardens, Chashma Shahi (Royal Spring) was built by Shah Jahan in 1632. Named after a natural spring with medicinal properties, the three-terraced garden offers panoramic views of Dal Lake and surrounding mountains.',
-      highlights: [
-        'Natural mountain spring',
-        'Three-tiered garden',
-        'Medicinal water source',
-        'Panoramic views',
-        'Royal architecture'
-      ],
-      image: '/destinations/kashmir/chashma_shahi/1.jpg',
-      category: 'heritage'
-    },
-    {
       name: 'Pari Mahal',
       description: 'Perched atop Zabarwan mountain range, Pari Mahal (Palace of Fairies) is a seven-terraced garden built in the mid-1600s. This historic monument served as a Buddhist monastery, later converted into a royal observatory and library, offering breathtaking views of Srinagar and Dal Lake.',
       highlights: [
@@ -140,19 +127,6 @@ export const KASHMIR_DESTINATION: RegionalDestination = {
       ],
       image: '/destinations/kashmir/sonamarg/1.jpg',
       category: 'nature'
-    },
-    {
-      name: 'Shankaracharya Temple',
-      description: 'Perched on Shankaracharya Hill at 1,100 feet above Srinagar, this ancient Shiva temple dates back to 200 BC. Reached by a flight of 240 stone steps, it offers 360-degree views of the Kashmir Valley and is a significant pilgrimage site.',
-      highlights: [
-        'Ancient Hindu temple',
-        'Panoramic valley views',
-        '240 stone steps',
-        'Religious significance',
-        'Historical architecture'
-      ],
-      image: '/destinations/kashmir/shankaracharya_temple/1.jpg',
-      category: 'spiritual'
     },
     {
       name: 'Hazratbal Shrine',
@@ -218,19 +192,6 @@ export const KASHMIR_DESTINATION: RegionalDestination = {
       ],
       image: '/destinations/kashmir/manasbal_lake/3.png',
       category: 'nature'
-    },
-    {
-      name: 'Awantipora Ruins',
-      description: 'These magnificent 1100-year-old Hindu temple ruins from the 9th century showcase Kashmir\'s rich architectural heritage. Built by King Avantivarman, the two temples dedicated to Lord Vishnu (Avantiswami) and Lord Shiva (Avantiswara) feature intricate stone carvings and represent the finest examples of Kashmiri temple architecture.',
-      highlights: [
-        '1100-year-old temple ruins',
-        'Finest Kashmiri architecture',
-        'Intricate stone carvings',
-        'Pre-Islamic heritage site',
-        'Archaeological significance'
-      ],
-      image: '/destinations/kashmir/awantipora_ruins/1.jpg',
-      category: 'heritage'
     },
     {
       name: 'Astan Marg',
