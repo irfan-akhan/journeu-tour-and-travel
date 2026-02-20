@@ -28,7 +28,7 @@ const sizes = {
 };
 
 export function ItineraryBuilderTrigger({
-  children = 'Build Your Trip',
+  children = 'Customize Your Trip',
   variant = 'primary',
   size = 'md',
   className,

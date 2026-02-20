@@ -188,7 +188,7 @@ export default function Navbar() {
                   showIcon={true}
                   className="font-semibold"
                 >
-                  Build Trip
+                  Customize Your Trip
                 </ItineraryBuilderTrigger>
                 {/* <Button className={`${BUTTON_GRADIENTS.primary} hover:shadow-[0_8px_24px_rgba(27,165,184,0.4)] transition-all duration-300 font-semibold px-6 group relative overflow-hidden`}>
                   <motion.div
@@ -266,7 +266,7 @@ export default function Navbar() {
                   showIcon={true}
                   className="w-full font-semibold justify-center"
                 >
-                  Build Your Trip
+                  Customize Your Trip
                 </ItineraryBuilderTrigger>
               </div>
             </div>
