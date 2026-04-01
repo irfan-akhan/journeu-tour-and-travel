@@ -11,7 +11,6 @@ import {
   Send,
   CheckCircle,
   Loader2,
-  CalendarCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,8 +28,6 @@ interface FormErrors {
   message?: string;
 }
 
-const SESSION_KEY = "scroll_booking_popup_dismissed";
-
 export default function ScrollBookingPopup() {
   const [isOpen, setIsOpen] = useState(false);
   const hasTriggered = useRef(false);
@@ -46,7 +43,6 @@ export default function ScrollBookingPopup() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (sessionStorage.getItem(SESSION_KEY)) return;
 
     const handleScroll = () => {
       if (!hasTriggered.current && window.scrollY > window.innerHeight * 0.85) {
@@ -62,9 +58,6 @@ export default function ScrollBookingPopup() {
 
   const handleClose = () => {
     setIsOpen(false);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(SESSION_KEY, "1");
-    }
   };
 
   const validateForm = (): boolean => {
@@ -190,10 +183,6 @@ export default function ScrollBookingPopup() {
 
               {/* Header content */}
               <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFD84D]/20 rounded-full text-[#FFD84D] text-sm font-medium mb-3">
-                  <CalendarCheck className="w-4 h-4" />
-                  <span>Limited Spots Available</span>
-                </div>
                 <h2
                   id="scroll-booking-heading"
                   className="font-ubuntu text-2xl font-bold mb-1"
