@@ -113,7 +113,6 @@ export default function ScrollBookingPopup() {
 
       if (response.ok) {
         setIsSuccess(true);
-        sessionStorage.setItem(SESSION_KEY, "1");
         setTimeout(() => {
           setIsOpen(false);
           setIsSuccess(false);
