@@ -23,6 +23,7 @@ import ScrollProgress from "@/components/custom/ScrollProgress";
 import BackToTop from "@/components/custom/BackToTop";
 import CustomCursor from "@/components/custom/CustomCursor";
 import PageTransition from "@/components/custom/PageTransition";
+import ScrollBookingPopup from "@/components/custom/ScrollBookingPopup";
 
 export default function Home() {
   return (
@@ -52,6 +53,7 @@ export default function Home() {
           </main>
           <Footer />
           {/* <BackToTop /> */}
+          <ScrollBookingPopup />
         </div>
       </PageTransition>
     </ErrorBoundary>

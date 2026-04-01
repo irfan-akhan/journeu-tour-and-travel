@@ -8,7 +8,7 @@ export default function TeamSection() {
   const team = [
     {
       name: "Imdad Bashir",
-      role: "CEO & Sales Executive",
+      role: "Founder & CEO",
       image: "/team/team2.png",
       // bio: "3+ years of experience in Kashmir tourism. Passionate about sustainable travel and cultural preservation.",
     },
