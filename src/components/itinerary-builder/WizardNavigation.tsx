@@ -25,42 +25,18 @@ export function WizardNavigation({
   showSkip = false,
   skipLabel = 'Skip this step',
 }: WizardNavigationProps) {
-  const { nextStep, prevStep, canGoPrev, state, getTotalDays } = useItineraryBuilder();
+  const { nextStep, prevStep, canGoPrev } = useItineraryBuilder();
 
   const handleNext = async () => {
-    console.log('[WizardNavigation] handleNext called, current step:', state.currentStep);
     if (onNext) {
-      console.log('[WizardNavigation] onNext callback exists, calling it...');
       const canProceed = await onNext();
-      console.log('[WizardNavigation] onNext returned:', canProceed);
-      if (canProceed === false) {
-        console.log('[WizardNavigation] Navigation blocked by onNext returning false');
-        return;
-      }
+      if (canProceed === false) return;
     }
-    console.log('[WizardNavigation] Calling nextStep()');
     nextStep();
   };
 
-  const totalDays = getTotalDays();
-  const estimatedPrice = state.itinerary.estimatedPrice?.grandTotal || 0;
-
   return (
     <div className="sticky bottom-0 px-6 py-4 bg-white border-t border-gray-200 shadow-lg">
-      {/* Quick summary */}
-      {totalDays > 0 && (
-        <div className="flex items-center justify-between mb-3 text-sm">
-          <span className="text-gray-600">
-            {totalDays} {totalDays === 1 ? 'day' : 'days'} trip
-          </span>
-          {estimatedPrice > 0 && (
-            <span className="font-medium text-[#0A4D5C]">
-              Est. ₹{estimatedPrice.toLocaleString('en-IN')}
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Navigation buttons */}
       <div className="flex items-center gap-3">
         {showPrev && canGoPrev() && (

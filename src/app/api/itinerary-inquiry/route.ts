@@ -31,49 +31,20 @@ const itineraryInquirySchema = z.object({
     preferredContactMethod: z.enum(['email', 'phone', 'whatsapp']),
   }),
   itinerary: z.object({
-    destinations: z.array(z.object({
-      id: z.string(),
-      name: z.string(),
-      daysAllocated: z.number(),
-      order: z.number(),
-    })).optional(),
-    dates: z.object({
-      type: z.enum(['flexible', 'fixed']),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      flexibleMonth: z.string().optional(),
-      totalDays: z.number(),
-    }).optional(),
-    activities: z.array(z.object({
-      destinationId: z.string(),
-      name: z.string(),
-      category: z.string(),
-    })).optional(),
-    accommodation: z.object({
-      tier: z.enum(['3-star', '4-star', '5-star']).optional(),
-      specialTypes: z.array(z.string()),
-    }).optional(),
+    duration: z.object({
+      label: z.string(),
+      days: z.number(),
+      nights: z.number(),
+    }).nullable().optional(),
+    pickup: z.string().optional(),
+    drop: z.string().optional(),
+    places: z.array(z.string()).optional(),
+    stays: z.array(z.string()).optional(),
+    inclusions: z.array(z.string()).optional(),
+    addons: z.array(z.string()).optional(),
     travelers: z.object({
       adults: z.number().min(1),
       children: z.number().min(0),
-      specialRequirements: z.object({
-        dietary: z.array(z.string()),
-        accessibility: z.boolean(),
-        photographyFocus: z.boolean(),
-      }),
-      specialOccasion: z.object({
-        type: z.string(),
-        notes: z.string().optional(),
-      }).optional(),
-    }).optional(),
-    addOns: z.array(z.object({
-      id: z.string(),
-      name: z.string(),
-      price: z.number(),
-    })).optional(),
-    estimatedPrice: z.object({
-      grandTotal: z.number(),
-      totalPerPerson: z.number(),
     }).optional(),
   }),
   additionalNotes: z.string().optional(),
@@ -86,30 +57,6 @@ export async function POST(request: NextRequest) {
     const validatedData = itineraryInquirySchema.parse(body);
 
     const { contactInfo, itinerary, additionalNotes } = validatedData;
-
-    // Format destinations for email
-    const destinationsText = itinerary.destinations
-      ?.sort((a, b) => a.order - b.order)
-      .map((d) => `${d.name} (${d.daysAllocated} days)`)
-      .join(' → ') || 'Not specified';
-
-    // Format activities
-    const activitiesText = itinerary.activities
-      ?.map((a) => `• ${a.name} (${a.category})`)
-      .join('\n') || 'Not specified';
-
-    // Format add-ons
-    const addOnsText = itinerary.addOns && itinerary.addOns.length > 0
-      ? itinerary.addOns.map((a) => `• ${a.name} - ₹${a.price.toLocaleString('en-IN')}`).join('\n')
-      : 'None selected';
-
-    // Format special requirements
-    const requirements = itinerary.travelers?.specialRequirements;
-    const requirementsText = [
-      requirements?.dietary?.length ? `Dietary: ${requirements.dietary.join(', ')}` : null,
-      requirements?.accessibility ? 'Accessibility needs: Yes' : null,
-      requirements?.photographyFocus ? 'Photography focus: Yes' : null,
-    ].filter(Boolean).join('\n') || 'None specified';
 
     // Generate reference ID
     const referenceId = `ITN-${Date.now().toString(36).toUpperCase()}`;
@@ -126,47 +73,21 @@ CONTACT INFORMATION
 Name: ${contactInfo.name}
 Email: ${contactInfo.email}
 Phone: ${contactInfo.phone}
-Preferred Contact: ${contactInfo.preferredContactMethod}
 
 TRIP DETAILS
 ------------
-Destinations: ${destinationsText}
-Total Duration: ${itinerary.dates?.totalDays || 0} days
-Travel Dates: ${itinerary.dates?.type === 'fixed' && itinerary.dates.startDate
-  ? itinerary.dates.startDate
-  : itinerary.dates?.flexibleMonth
-    ? `Flexible - ${itinerary.dates.flexibleMonth}`
-    : 'Flexible'}
+Duration: ${itinerary.duration?.label || 'Not specified'}
+Pickup: ${itinerary.pickup || 'Not specified'}
+Drop: ${itinerary.drop || 'Not specified'}
+Places to Visit: ${itinerary.places?.join(', ') || 'Not specified'}
+Night Stays: ${itinerary.stays?.join(', ') || 'Not specified'}
+Inclusions: ${itinerary.inclusions?.length ? itinerary.inclusions.join(', ') : 'None selected'}
+Add-Ons: ${itinerary.addons?.length ? itinerary.addons.join(', ') : 'None selected'}
 
 TRAVELERS
 ---------
-Adults: ${itinerary.travelers?.adults || 2}
-Children: ${itinerary.travelers?.children || 0}
-${itinerary.travelers?.specialOccasion?.type && itinerary.travelers.specialOccasion.type !== 'none'
-  ? `Special Occasion: ${itinerary.travelers.specialOccasion.type}`
-  : ''}
-
-ACCOMMODATION
--------------
-Tier: ${itinerary.accommodation?.tier || '4-star'}
-Special Types: ${itinerary.accommodation?.specialTypes?.join(', ') || 'Standard'}
-
-ACTIVITIES
-----------
-${activitiesText}
-
-ADD-ONS
--------
-${addOnsText}
-
-SPECIAL REQUIREMENTS
---------------------
-${requirementsText}
-
-ESTIMATED PRICE
----------------
-Total: ₹${itinerary.estimatedPrice?.grandTotal?.toLocaleString('en-IN') || 'N/A'}
-Per Person: ₹${itinerary.estimatedPrice?.totalPerPerson?.toLocaleString('en-IN') || 'N/A'}
+Adults: ${itinerary.travelers?.adults ?? 2}
+Children: ${itinerary.travelers?.children ?? 0}
 
 ADDITIONAL NOTES
 ----------------
@@ -199,9 +120,9 @@ This inquiry was submitted via the Custom Itinerary Builder.
     console.log('Custom itinerary inquiry received:', {
       referenceId,
       name: contactInfo.name,
-      destinations: destinationsText,
-      travelers: (itinerary.travelers?.adults || 2) + (itinerary.travelers?.children || 0),
-      estimatedValue: itinerary.estimatedPrice?.grandTotal,
+      duration: itinerary.duration?.label,
+      places: itinerary.places?.length,
+      travelers: (itinerary.travelers?.adults ?? 2) + (itinerary.travelers?.children ?? 0),
     });
 
     return NextResponse.json({

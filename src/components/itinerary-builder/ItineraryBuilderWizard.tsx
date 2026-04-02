@@ -3,60 +3,38 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useItineraryBuilder } from './context/ItineraryBuilderContext';
 import { WizardProgress } from './WizardProgress';
-import { DestinationStep } from './steps/DestinationStep';
-import { DatesStep } from './steps/DatesStep';
-import { ActivitiesStep } from './steps/ActivitiesStep';
-import { AccommodationStep } from './steps/AccommodationStep';
-import { TravelersStep } from './steps/TravelersStep';
+import { DurationStep } from './steps/DurationStep';
+import { PickupStep } from './steps/PickupStep';
+import { PlacesStep } from './steps/PlacesStep';
+import { StaysStep } from './steps/StaysStep';
+import { InclusionsStep } from './steps/InclusionsStep';
 import { AddOnsStep } from './steps/AddOnsStep';
 import { ReviewStep } from './steps/ReviewStep';
-import { SubmitStep } from './steps/SubmitStep';
 
 const stepVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 50 : -50,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 50 : -50,
-    opacity: 0,
-  }),
+  enter: { x: 40, opacity: 0 },
+  center: { x: 0, opacity: 1 },
+  exit: { x: -40, opacity: 0 },
 };
 
 export function ItineraryBuilderWizard() {
   const { state } = useItineraryBuilder();
   const { currentStep, isSuccess } = state;
-  console.log('[ItineraryBuilderWizard] Rendering, currentStep:', currentStep, 'isSuccess:', isSuccess);
 
-  // If submission was successful, show success screen
   if (isSuccess) {
     return <SuccessScreen />;
   }
 
   const renderStep = () => {
     switch (currentStep) {
-      case 'destinations':
-        return <DestinationStep />;
-      case 'dates':
-        return <DatesStep />;
-      case 'activities':
-        return <ActivitiesStep />;
-      case 'accommodation':
-        return <AccommodationStep />;
-      case 'travelers':
-        return <TravelersStep />;
-      case 'addons':
-        return <AddOnsStep />;
-      case 'review':
-        return <ReviewStep />;
-      case 'submit':
-        return <SubmitStep />;
-      default:
-        return <DestinationStep />;
+      case 'duration':   return <DurationStep />;
+      case 'pickup':     return <PickupStep />;
+      case 'places':     return <PlacesStep />;
+      case 'stays':      return <StaysStep />;
+      case 'inclusions': return <InclusionsStep />;
+      case 'addons':     return <AddOnsStep />;
+      case 'review':     return <ReviewStep />;
+      default:           return <DurationStep />;
     }
   };
 
@@ -72,7 +50,6 @@ export function ItineraryBuilderWizard() {
             initial="enter"
             animate="center"
             exit="exit"
-            custom={1}
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             {renderStep()}

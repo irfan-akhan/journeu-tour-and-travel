@@ -1,351 +1,193 @@
 'use client';
 
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import {
-  MapPin,
-  Calendar,
-  Users,
-  Star,
-  Pencil,
-  ChevronRight,
-  Mountain,
-  Landmark,
-  Compass,
-  Heart,
-  Palette,
-} from 'lucide-react';
+import { useState } from 'react';
 import { useItineraryBuilder } from '../context/ItineraryBuilderContext';
-import { WizardNavigation } from '../WizardNavigation';
-import { GeneratedDay, PriceEstimate } from '../types/itinerary';
-import { ALL_REGIONAL_DESTINATIONS } from '@/data/regionalDestinations';
 import { cn } from '@/lib/utils';
-import { format, addDays } from 'date-fns';
-
-const categoryIcons = {
-  nature: Mountain,
-  heritage: Landmark,
-  adventure: Compass,
-  spiritual: Heart,
-  cultural: Palette,
-};
-
-// Pricing constants
-const BASE_RATES = {
-  '3-star': 2500,
-  '4-star': 5000,
-  '5-star': 10000,
-};
-
-const ACTIVITY_RATES = {
-  nature: 500,
-  adventure: 1500,
-  heritage: 300,
-  spiritual: 200,
-  cultural: 400,
-};
+import { Minus, Plus } from 'lucide-react';
 
 export function ReviewStep() {
-  console.log('[ReviewStep] Component rendered');
-  const { state, goToStep, getTotalDays } = useItineraryBuilder();
-  console.log('[ReviewStep] Current step from state:', state.currentStep);
-  const {
-    destinations = [],
-    dates,
-    activities = [],
-    accommodation,
-    travelers,
-    addOns = [],
-  } = state.itinerary;
+  const { state, updateTravelers, prevStep, submitInquiry } = useItineraryBuilder();
+  const { itinerary, isSubmitting } = state;
 
-  const totalDays = getTotalDays();
-  const totalPeople = (travelers?.adults || 2) + (travelers?.children || 0);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [notes, setNotes] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Generate day-by-day itinerary
-  const generatedItinerary: GeneratedDay[] = useMemo(() => {
-    const itinerary: GeneratedDay[] = [];
-    let dayCounter = 1;
-    const sortedDestinations = [...destinations].sort((a, b) => a.order - b.order);
+  const { travelers } = itinerary;
 
-    sortedDestinations.forEach((dest) => {
-      const destData = ALL_REGIONAL_DESTINATIONS.find((d) => d.id === dest.id);
-      const destActivities = activities.filter((a) => a.destinationId === dest.id);
+  const adjustTraveler = (type: 'adults' | 'children', delta: number) => {
+    const current = travelers[type];
+    const next = Math.max(type === 'adults' ? 1 : 0, current + delta);
+    updateTravelers({ ...travelers, [type]: next });
+  };
 
-      for (let i = 0; i < dest.daysAllocated; i++) {
-        const dayActivities = destActivities.slice(
-          i * 2,
-          i * 2 + 2
-        );
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!name.trim()) e.name = 'Name is required';
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Valid email is required';
+    if (!phone.trim()) e.phone = 'Phone number is required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-        itinerary.push({
-          day: dayCounter,
-          date: dates?.startDate ? addDays(dates.startDate, dayCounter - 1) : undefined,
-          destination: dest.name,
-          location: dest.name,
-          title:
-            dayCounter === 1
-              ? `Arrival in ${dest.name}`
-              : i === dest.daysAllocated - 1 && dayCounter === totalDays
-              ? `Departure from ${dest.name}`
-              : `Exploring ${dest.name}`,
-          activities: dayActivities.map((a) => a.name),
-          highlights: dayActivities.flatMap((a) => {
-            const place = destData?.places.find((p) => p.name === a.name);
-            return place?.highlights.slice(0, 2) || [];
-          }),
-          meals: ['Breakfast', 'Dinner'],
-          accommodation: accommodation?.tier ? `${accommodation.tier} Hotel` : 'Not specified',
-          accommodationTier: accommodation?.tier,
-        });
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    await submitInquiry(
+      { name, email, phone, preferredContactMethod: 'phone' },
+      notes || undefined
+    );
+  };
 
-        dayCounter++;
-      }
-    });
-
-    return itinerary;
-  }, [destinations, activities, dates, accommodation, totalDays]);
-
-  // Calculate price estimate
-  const priceEstimate: PriceEstimate = useMemo(() => {
-    const tier = accommodation?.tier;
-    const accommodationCost = tier ? BASE_RATES[tier] * totalDays : 0;
-
-    const activitiesCost = activities.reduce((sum, act) => {
-      return sum + (ACTIVITY_RATES[act.category] || 300);
-    }, 0);
-
-    const addOnsCost = addOns.reduce((sum, addOn) => {
-      switch (addOn.priceType) {
-        case 'per-trip':
-          return sum + addOn.price;
-        case 'per-person':
-          return sum + addOn.price * totalPeople;
-        case 'per-day':
-          return sum + addOn.price * totalDays;
-        default:
-          return sum + addOn.price;
-      }
-    }, 0);
-
-    const transportCost = totalDays * 1500; // Base transport cost per day
-    const basePrice = accommodationCost + activitiesCost + transportCost;
-    const totalPerPerson = basePrice + addOnsCost / totalPeople;
-    const grandTotal = basePrice * totalPeople + addOnsCost;
-
-    return {
-      basePrice,
-      accommodationCost,
-      activitiesCost,
-      transportCost,
-      addOnsCost,
-      totalPerPerson: Math.round(totalPerPerson),
-      grandTotal: Math.round(grandTotal),
-      currency: 'INR',
-      note: 'Estimated price - final quote on request',
-    };
-  }, [accommodation, activities, addOns, totalDays, totalPeople]);
+  const reviewRows: Array<{ label: string; value: string | null }> = [
+    {
+      label: 'Duration',
+      value: itinerary.duration?.label ?? null,
+    },
+    {
+      label: 'Pickup',
+      value: itinerary.pickup || null,
+    },
+    {
+      label: 'Drop',
+      value: itinerary.drop || null,
+    },
+    {
+      label: 'Places to Visit',
+      value: itinerary.places.length > 0 ? itinerary.places.join(', ') : null,
+    },
+    {
+      label: 'Night Stays',
+      value: itinerary.stays.length > 0 ? itinerary.stays.join(', ') : null,
+    },
+    {
+      label: 'Inclusions',
+      value: itinerary.inclusions.length > 0 ? itinerary.inclusions.join(', ') : 'None selected',
+    },
+    {
+      label: 'Add-Ons',
+      value: itinerary.addons.length > 0 ? itinerary.addons.join(', ') : 'None selected',
+    },
+  ];
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            Review Your Itinerary
-          </h3>
-          <p className="text-sm text-gray-600">
-            Here&apos;s your custom trip. Make sure everything looks good.
-          </p>
-        </div>
-
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <SummaryCard
-            icon={MapPin}
-            label="Destinations"
-            value={destinations.map((d) => d.name).join(' → ')}
-            onEdit={() => goToStep('destinations')}
-          />
-          <SummaryCard
-            icon={Calendar}
-            label="Duration"
-            value={`${totalDays} days`}
-            subValue={
-              dates?.startDate
-                ? format(dates.startDate, 'MMM d, yyyy')
-                : dates?.flexibleMonth
-                ? `${dates.flexibleMonth.charAt(0).toUpperCase() + dates.flexibleMonth.slice(1)}`
-                : 'Flexible'
-            }
-            onEdit={() => goToStep('dates')}
-          />
-          <SummaryCard
-            icon={Star}
-            label="Accommodation"
-            value={accommodation?.tier || 'Not specified'}
-            onEdit={() => goToStep('accommodation')}
-          />
-          <SummaryCard
-            icon={Users}
-            label="Travelers"
-            value={`${travelers?.adults || 2} Adults${
-              (travelers?.children || 0) > 0
-                ? `, ${travelers?.children} Children`
-                : ''
-            }`}
-            onEdit={() => goToStep('travelers')}
-          />
-        </div>
-
-        {/* Day-by-day itinerary */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-gray-900">Day-by-Day Itinerary</h4>
-            <button
-              onClick={() => goToStep('activities')}
-              className="text-sm text-[#1BA5B8] hover:underline flex items-center gap-1"
-            >
-              <Pencil className="w-3 h-3" />
-              Edit Activities
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {generatedItinerary.map((day, index) => (
-              <motion.div
-                key={day.day}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-gray-50 rounded-xl p-4"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Day number */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1BA5B8] to-[#0A4D5C] flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">
-                      {day.day}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h5 className="font-medium text-gray-900">{day.title}</h5>
-                      {day.date && (
-                        <span className="text-xs text-gray-500">
-                          {format(day.date, 'MMM d')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">{day.destination}</p>
-
-                    {day.activities.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {day.activities.map((activity) => {
-                          const actData = activities.find(
-                            (a) => a.name === activity
-                          );
-                          const Icon = actData
-                            ? categoryIcons[actData.category]
-                            : MapPin;
-                          return (
-                            <span
-                              key={activity}
-                              className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full text-gray-600"
-                            >
-                              <Icon className="w-3 h-3" />
-                              {activity}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Price breakdown */}
-        <div className="bg-gradient-to-br from-[#0A4D5C] to-[#1BA5B8] rounded-xl p-5 text-white">
-          <h4 className="font-medium mb-4">Price Estimate</h4>
-
-          <div className="space-y-2 text-sm mb-4">
-            <div className="flex justify-between">
-              <span className="text-white/80">Accommodation ({totalDays} nights)</span>
-              <span>₹{priceEstimate.accommodationCost.toLocaleString('en-IN')}</span>
+    <div className="p-6 space-y-8">
+      {/* Summary */}
+      <div>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Review Your Itinerary</h3>
+        <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+          {reviewRows.map(({ label, value }) => (
+            <div key={label} className="flex gap-4 px-4 py-3 text-sm">
+              <span className="w-32 flex-shrink-0 text-gray-400 font-medium">{label}</span>
+              <span className="text-gray-800 leading-snug">{value ?? <span className="text-gray-400 italic">Not selected</span>}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-white/80">Activities & Experiences</span>
-              <span>₹{priceEstimate.activitiesCost.toLocaleString('en-IN')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/80">Transport</span>
-              <span>₹{priceEstimate.transportCost.toLocaleString('en-IN')}</span>
-            </div>
-            {priceEstimate.addOnsCost > 0 && (
-              <div className="flex justify-between">
-                <span className="text-white/80">Add-ons</span>
-                <span>₹{priceEstimate.addOnsCost.toLocaleString('en-IN')}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-white/20 pt-3">
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-sm text-white/70">Estimated Total</p>
-                <p className="text-2xl font-bold">
-                  ₹{priceEstimate.grandTotal.toLocaleString('en-IN')}
-                </p>
-              </div>
-              <p className="text-xs text-white/60">
-                ~₹{priceEstimate.totalPerPerson.toLocaleString('en-IN')}/person
-              </p>
-            </div>
-          </div>
-
-          <p className="text-xs text-white/50 mt-3">
-            {priceEstimate.note}
-          </p>
+          ))}
         </div>
       </div>
 
-      <WizardNavigation nextLabel="Get Quote" />
-    </div>
-  );
-}
-
-function SummaryCard({
-  icon: Icon,
-  label,
-  value,
-  subValue,
-  onEdit,
-}: {
-  icon: typeof MapPin;
-  label: string;
-  value: string;
-  subValue?: string;
-  onEdit: () => void;
-}) {
-  return (
-    <div className="bg-gray-50 rounded-xl p-3">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2 mb-1">
-          <Icon className="w-4 h-4 text-gray-400" />
-          <span className="text-xs text-gray-500">{label}</span>
+      {/* Travelers */}
+      <div>
+        <h4 className="text-sm font-semibold text-gray-700 mb-3">Number of Travelers</h4>
+        <div className="flex gap-6">
+          {(['adults', 'children'] as const).map((type) => (
+            <div key={type} className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 w-16 capitalize">{type}</span>
+              <button
+                onClick={() => adjustTraveler(type, -1)}
+                className="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-[#1BA5B8] transition-colors"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              <span className="w-6 text-center font-semibold text-gray-900">{travelers[type]}</span>
+              <button
+                onClick={() => adjustTraveler(type, 1)}
+                className="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-[#1BA5B8] transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* Contact info */}
+      <div>
+        <h4 className="text-sm font-semibold text-gray-700 mb-3">Your Contact Details</h4>
+        <div className="space-y-3">
+          <div>
+            <input
+              type="text"
+              placeholder="Full Name *"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={cn(
+                'w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors',
+                errors.name ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#1BA5B8]'
+              )}
+            />
+            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+          </div>
+          <div>
+            <input
+              type="email"
+              placeholder="Email Address *"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={cn(
+                'w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors',
+                errors.email ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#1BA5B8]'
+              )}
+            />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+          </div>
+          <div>
+            <input
+              type="tel"
+              placeholder="Phone Number *"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={cn(
+                'w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors',
+                errors.phone ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#1BA5B8]'
+              )}
+            />
+            {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+          </div>
+          <textarea
+            placeholder="Additional notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#1BA5B8] text-sm outline-none transition-colors resize-none"
+          />
+        </div>
+      </div>
+
+      <p className="text-xs text-gray-400">
+        Prices are on request. Our team will reach out with a personalised quote within 24 hours.
+      </p>
+
+      <div className="flex justify-between">
         <button
-          onClick={onEdit}
-          className="p-1 text-gray-400 hover:text-[#1BA5B8] transition-colors"
+          onClick={prevStep}
+          className="px-6 py-2.5 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors"
         >
-          <Pencil className="w-3 h-3" />
+          Back
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className={cn(
+            'px-6 py-2.5 rounded-lg font-medium transition-all',
+            isSubmitting
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-[#1BA5B8] to-[#0A4D5C] text-white hover:from-[#FFD84D] hover:to-[#FFA500] hover:text-gray-900'
+          )}
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit Enquiry'}
         </button>
       </div>
-      <p className="text-sm font-medium text-gray-900 line-clamp-1">{value}</p>
-      {subValue && (
-        <p className="text-xs text-gray-500 mt-0.5">{subValue}</p>
-      )}
     </div>
   );
 }

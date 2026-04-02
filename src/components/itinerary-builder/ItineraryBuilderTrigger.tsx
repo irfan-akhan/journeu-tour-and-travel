@@ -37,7 +37,7 @@ export function ItineraryBuilderTrigger({
   const { openDrawer, state } = useItineraryBuilder();
 
   // Check if there's a saved draft
-  const hasDraft = (state.itinerary.destinations?.length || 0) > 0;
+  const hasDraft = (state.itinerary.places?.length || 0) > 0;
 
   return (
     <motion.button

@@ -1,32 +1,32 @@
 'use client';
 
 import { useItineraryBuilder } from '../context/ItineraryBuilderContext';
-import { ADDONS_LIST } from '../types/itinerary';
+import { INCLUSIONS_LIST } from '../types/itinerary';
 import { cn } from '@/lib/utils';
 
-export function AddOnsStep() {
-  const { state, updateAddons, nextStep, prevStep } = useItineraryBuilder();
-  const selected = state.itinerary.addons;
+export function InclusionsStep() {
+  const { state, updateInclusions, nextStep, prevStep } = useItineraryBuilder();
+  const selected = state.itinerary.inclusions;
 
   const toggle = (item: string) => {
     if (selected.includes(item)) {
-      updateAddons(selected.filter((a) => a !== item));
+      updateInclusions(selected.filter((i) => i !== item));
     } else {
-      updateAddons([...selected, item]);
+      updateInclusions([...selected, item]);
     }
   };
 
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-gray-900">Extra Add-Ons</h3>
+        <h3 className="text-xl font-bold text-gray-900">Select Inclusions</h3>
         <p className="text-sm text-gray-500 mt-1">
-          Upgrade your experience with premium services. All optional.
+          Add services as per your requirement. All optional.
         </p>
       </div>
 
       <div className="space-y-2">
-        {ADDONS_LIST.map((item) => {
+        {INCLUSIONS_LIST.map((item) => {
           const isSelected = selected.includes(item);
           return (
             <button
@@ -59,7 +59,7 @@ export function AddOnsStep() {
 
       {selected.length > 0 && (
         <p className="mt-4 text-xs text-[#1BA5B8] font-medium">
-          {selected.length} add-on{selected.length > 1 ? 's' : ''} selected
+          {selected.length} inclusion{selected.length > 1 ? 's' : ''} selected
         </p>
       )}
 
