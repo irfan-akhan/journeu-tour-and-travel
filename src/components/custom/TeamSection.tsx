@@ -42,12 +42,12 @@ export default function TeamSection() {
       image: "/team/furqan.png",
       // bio: "Expert in logistics and customer service. Ensures every journey runs smoothly from start to finish.",
     },
-    {
-       name: "Ishfaq Ahmad",
-      role: "Trip coordinator",
-      image: "/team/team7.png",
-      // bio: "Specializes in customized itineraries. Helps travelers discover their perfect Kashmir adventure.",
-    },
+    // {
+    //    name: "Ishfaq Ahmad",
+    //   role: "Trip coordinator",
+    //   image: "/team/team7.png",
+    //   // bio: "Specializes in customized itineraries. Helps travelers discover their perfect Kashmir adventure.",
+    // },
     {
       name: "Yasir Nazir",
       role: "Driver",
@@ -55,12 +55,12 @@ export default function TeamSection() {
       // bio: "Licensed guide with deep knowledge of Himalayan culture, history, and geography. Speaks 5 languages.",
     },
    
-    {
-      name: "Aabid Mir",
-      role: "Driver",
-      image: "/team/team10.png",
-      // bio: "Licensed guide with deep knowledge of Himalayan culture, history, and geography. Speaks 5 languages.",
-    },
+    // {
+    //   name: "Aabid Mir",
+    //   role: "Driver",
+    //   image: "/team/team10.png",
+    //   // bio: "Licensed guide with deep knowledge of Himalayan culture, history, and geography. Speaks 5 languages.",
+    // },
     
     {
        name: "Adil Reshi",
